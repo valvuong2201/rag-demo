@@ -29,13 +29,21 @@ jobs:
 
       - name: Run daily sync
         env:
+          # Only the AI_PROVIDER-matching key/store id needs to actually be
+          # set as a repo secret; the other pair is simply empty and unused.
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'openai' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           VECTOR_STORE_ID: ${{ secrets.VECTOR_STORE_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_STORE_ID: ${{ secrets.GEMINI_STORE_ID }}
         run: |
           mkdir -p data
           docker run --rm \
+            -e AI_PROVIDER \
             -e OPENAI_API_KEY \
             -e VECTOR_STORE_ID \
+            -e GEMINI_API_KEY \
+            -e GEMINI_STORE_ID \
             -e STATE_PATH=/app/data/state.json \
             -e ARTICLES_DIR=/app/data/articles \
             -v "$PWD/data:/app/data" \

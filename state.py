@@ -8,8 +8,8 @@ from typing import TypedDict
 class ArticleState(TypedDict):
     content_hash: str
     updated_at: str
-    openai_file_id: str
-    vector_store_file_id: str
+    provider: str  # "openai" | "gemini" -- which provider uploaded this ref
+    external_ref: str  # opaque id, meaningful only to that provider
 
 
 def load(path: str) -> dict[str, ArticleState]:
