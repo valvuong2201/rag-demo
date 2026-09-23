@@ -97,8 +97,7 @@ One-time setup:
 - **Last run artifact**: each run also uploads its output as a downloadable
   artifact named `sync-log` (30-day retention), attached to that run's page.
 
-<!-- TODO: paste the actual repo's Actions URL here once pushed, e.g.
-https://github.com/<you>/<repo>/actions/workflows/daily-sync.yml -->
+https://github.com/valvuong2201/rag-demo/actions/workflows/daily-sync.yml
 
 ## Assistant setup (manual, one-time)
 
