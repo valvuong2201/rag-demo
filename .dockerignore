@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.sample
+.venv
+__pycache__
+*.pyc
+.git
+articles/*.md
+state.json
+data/

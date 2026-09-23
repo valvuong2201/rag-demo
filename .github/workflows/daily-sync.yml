@@ -1,0 +1,59 @@
+name: Daily Sync
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # 03:00 UTC daily
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Runners are a fresh VM every run, so state.json (delta-detection
+      # state) has to be persisted outside git. actions/cache with a
+      # run-id-scoped key + a prefix restore-key gives us "always restore the
+      # most recent previous run's data, always save a new one" for free.
+      - name: Restore prior run's data (state.json, articles/)
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: kb-sync-bot-data-${{ github.run_id }}
+          restore-keys: |
+            kb-sync-bot-data-
+
+      - name: Build image
+        run: docker build -t kb-sync-bot:latest .
+
+      - name: Run daily sync
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          VECTOR_STORE_ID: ${{ secrets.VECTOR_STORE_ID }}
+        run: |
+          mkdir -p data
+          docker run --rm \
+            -e OPENAI_API_KEY \
+            -e VECTOR_STORE_ID \
+            -e STATE_PATH=/app/data/state.json \
+            -e ARTICLES_DIR=/app/data/articles \
+            -v "$PWD/data:/app/data" \
+            kb-sync-bot:latest | tee sync-output.log
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat sync-output.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # This workflow run's own page IS the "link to daily job logs"; the
+      # artifact below is the "last run artefact" the README points to.
+      - name: Upload log as last-run artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-log
+          path: sync-output.log
+          retention-days: 30
