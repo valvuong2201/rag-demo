@@ -83,10 +83,21 @@ daily job) reuse the same store instead of creating a new one each time.
 
 ```bash
 docker build -t kb-sync-bot .
-docker run --rm --env-file .env kb-sync-bot
+docker run --rm --env-file .env \
+  -e STATE_PATH=/app/data/state.json -e ARTICLES_DIR=/app/data/articles \
+  -v "$PWD/data:/app/data" \
+  kb-sync-bot
 ```
 
 Runs once and exits `0` on success, per the assignment's contract.
+
+**The `-v`/`data` mount matters**: `state.json` is in `.dockerignore` on
+purpose (it's runtime state, not something to bake into an image), so a
+plain `docker run --rm --env-file .env kb-sync-bot` with no volume starts
+every container with an *empty* state and re-uploads everything as
+`added=N` on every run — duplicating files in the store instead of
+detecting deltas. Always mount `data/` (as above, or as the Scheduling
+section's `deploy` pattern does) outside quick one-off smoke tests.
 
 ## Scheduling the daily job
 
