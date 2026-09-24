@@ -58,7 +58,9 @@ class GeminiProvider:
         deadline = time.time() + timeout_s
         while time.time() < deadline:
             store = self.client.file_search_stores.get(name=store_id)
-            if store.pending_documents_count == 0:
+            # The API returns None, not 0, for an empty count -- `== 0` would
+            # never match and this would spin for the full timeout every time.
+            if not store.pending_documents_count:
                 return self._counts(store)
             time.sleep(2)
         return self._counts(self.client.file_search_stores.get(name=store_id))
@@ -73,7 +75,7 @@ class GeminiProvider:
     @staticmethod
     def _counts(store) -> dict:
         return {
-            "completed": store.active_documents_count,
-            "pending": store.pending_documents_count,
-            "failed": store.failed_documents_count,
+            "completed": store.active_documents_count or 0,
+            "pending": store.pending_documents_count or 0,
+            "failed": store.failed_documents_count or 0,
         }
