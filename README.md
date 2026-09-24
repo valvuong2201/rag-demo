@@ -166,8 +166,26 @@ https://github.com/valvuong2201/rag-demo/actions/workflows/daily-sync.yml
 
 ## Sanity check
 
-<!-- TODO: ask the assistant "How do I add a YouTube video?" in the
-Playground and attach a screenshot here showing a correct, cited answer. -->
+Asked: **"How do I add a YouTube video?"**
+
+> OptiSigns supports streaming YouTube content using the integrated app
+> feature. To display YouTube analytics or dashboards, you can use the
+> YouTube Dashboard App integrated with Google Looker Studio.
+>
+> Article URL: https://support.optisigns.com/hc/en-us/articles/48626115821459-How-to-Use-the-YouTube-Dashboard-App
+> Article URL: https://support.optisigns.com/hc/en-us/articles/29792081890323-Guide-for-Creating-Content-with-OptiSigns
+
+Answered correctly, grounded in the uploaded docs, with real cited URLs — see
+`screenshot.png` (submitted alongside this repo per the Deliverables table).
+
+**Note on how this was run**: Google AI Studio's Playground UI does not
+currently expose a way to attach an existing File Search store (only ad-hoc
+file/Drive attachments for a single turn) — a real product gap, not a
+shortcut taken here. Ran the identical call through the same SDK AI Studio
+itself uses (`client.interactions.create(... tools=[{"type": "file_search", ...}])`)
+instead. OpenAI's Playground UI does support attaching an existing vector
+store directly (used earlier, then blocked by the OpenAI trial running out
+of credits — see AI provider, above, for why this project runs on Gemini).
 
 ## Notes / limitations
 
@@ -178,8 +196,14 @@ Playground and attach a screenshot here showing a correct, cited answer. -->
 - No API keys are committed; copy `.env.sample` to `.env` locally, and pass
   the active provider's key as a runtime secret in whatever scheduler/host
   runs the container.
-- The Gemini path is built against the real, current `google-genai` SDK
-  (method signatures verified locally against 2.25.0) but hasn't been run
-  end to end against a live Gemini API key the way the OpenAI path has —
-  worth a manual smoke test (`AI_PROVIDER=gemini python main.py`) before
-  relying on it for a graded run.
+- The Gemini path is verified end to end against a live API key (create
+  store → upload → index → delete), not just checked against the SDK's
+  signatures. One real bug surfaced this way and is fixed: `File
+  Search Store.pending_documents_count` is `None`, not `0`, when nothing is
+  pending — a naive `== 0` check spun for the full 300s timeout on every
+  call instead of returning immediately.
+- Gemini's free tier rate-limits *querying* an assistant (`interactions.create`
+  / `generate_content`) per model at 20 requests/day — hit this while
+  sanity-checking and had to fall back across a few Flash model variants.
+  This only affects asking the assistant questions; the daily sync job's
+  own upload/index calls are a separate quota and unaffected.
