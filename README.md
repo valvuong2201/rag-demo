@@ -217,3 +217,8 @@ of credits — see AI provider, above, for why this project runs on Gemini).
   sanity-checking and had to fall back across a few Flash model variants.
   This only affects asking the assistant questions; the daily sync job's
   own upload/index calls are a separate quota and unaffected.
+- The OpenAI vector store was synced before the full-corpus fix above and
+  still only has the original 100/414 articles (OpenAI's free trial ran out
+  of credit before it could be topped up — see AI provider, above). Add
+  credit and run `AI_PROVIDER=openai python main.py` once to bring it to
+  parity with the Gemini store before relying on it.
