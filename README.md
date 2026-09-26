@@ -168,12 +168,22 @@ https://github.com/valvuong2201/rag-demo/actions/workflows/daily-sync.yml
 
 Asked: **"How do I add a YouTube video?"**
 
-> OptiSigns supports streaming YouTube content using the integrated app
-> feature. To display YouTube analytics or dashboards, you can use the
-> YouTube Dashboard App integrated with Google Looker Studio.
+> To add a YouTube video to OptiSigns, follow these steps:
 >
-> Article URL: https://support.optisigns.com/hc/en-us/articles/48626115821459-How-to-Use-the-YouTube-Dashboard-App
-> Article URL: https://support.optisigns.com/hc/en-us/articles/29792081890323-Guide-for-Creating-Content-with-OptiSigns
+> - Log in to the OptiSigns portal and navigate to **Files/Assets**, then click **Apps**.
+> - Search for and select the **YouTube** app.
+> - Enter a name for your video asset (optional).
+> - Paste the link to your YouTube video into the **URL** field.
+> - Configure any desired display, playback, or caption options, then click **Save**.
+>
+> For more details, check the full guide:
+> Article URL: https://support.optisigns.com/hc/en-us/articles/360051014713-How-to-Use-YouTube-with-OptiSigns
+
+(An earlier run of this same question, before the full-corpus and base64-image
+fixes below, cited a related-but-wrong article — the actual "How to Use
+YouTube with OptiSigns" guide had fallen outside the first 100-of-412-article
+slice. Re-running it after those fixes now cites the correct article
+directly.)
 
 Answered correctly, grounded in the uploaded docs, with real cited URLs — see
 `screenshot.png` (submitted alongside this repo per the Deliverables table).
