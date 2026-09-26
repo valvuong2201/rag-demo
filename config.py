@@ -22,7 +22,11 @@ GEMINI_EMBEDDING_MODEL = os.environ.get("GEMINI_EMBEDDING_MODEL", "models/gemini
 
 HELP_CENTER_URL = os.environ.get("HELP_CENTER_URL", "https://support.optisigns.com")
 LOCALE = os.environ.get("HELP_CENTER_LOCALE", "en-us")
-MIN_ARTICLES = int(os.environ.get("MIN_ARTICLES", "30"))
+# The assignment's floor is >=30; default high enough to just pull every
+# article the Help Center has (~412 at the time of writing) rather than an
+# arbitrary partial slice -- a partial crawl measurably hurts answer quality
+# when the one relevant article happens to fall outside the cutoff.
+MIN_ARTICLES = int(os.environ.get("MIN_ARTICLES", "1000"))
 
 ARTICLES_DIR = os.environ.get("ARTICLES_DIR", "articles")
 STATE_PATH = os.environ.get("STATE_PATH", "state.json")

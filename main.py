@@ -38,6 +38,15 @@ def run() -> int:
     prior_state = state_store.load(config.STATE_PATH)
     new_state: dict[str, state_store.ArticleState] = {}
 
+    def save_progress() -> None:
+        # prior_state ∪ new_state: articles this run hasn't reached yet keep
+        # their last-known-good record; articles it did reach take the fresh
+        # one. Called after every article (not just once at the end) so a
+        # failure partway through a large batch -- a transient upload error,
+        # a killed process -- doesn't strand already-uploaded articles
+        # untracked, which would re-upload (and duplicate) them next run.
+        state_store.save(config.STATE_PATH, {**prior_state, **new_state})
+
     added = updated = skipped = 0
 
     for article in articles:
@@ -71,16 +80,18 @@ def run() -> int:
             "provider": config.AI_PROVIDER,
             "external_ref": ref,
         }
+        save_progress()
 
     # Articles that disappeared from the Help Center since the last run get
     # removed from the store too, so the assistant never cites a dead link.
     removed = 0
-    for slug, prior in prior_state.items():
+    for slug, prior in list(prior_state.items()):
         if slug not in new_state and prior.get("provider") == config.AI_PROVIDER:
             provider.remove_article(store_id, prior["external_ref"])
+            del prior_state[slug]
             removed += 1
 
-    state_store.save(config.STATE_PATH, new_state)
+    save_progress()
 
     counts = provider.wait_for_processing(store_id)
 

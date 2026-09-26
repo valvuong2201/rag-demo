@@ -32,17 +32,30 @@ class GeminiProvider:
         )
         return store.name
 
-    def upload_article(self, store_id: str, filename: str, text: str) -> str:
-        operation = self.client.file_search_stores.upload_to_file_search_store(
-            file_search_store_name=store_id,
-            file=io.BytesIO(text.encode("utf-8")),
-            config=types.UploadToFileSearchStoreConfig(
-                display_name=filename,
-                mime_type="text/markdown",
-            ),
-        )
-        operation = self._await_operation(operation)
-        return operation.response.document_name
+    def upload_article(self, store_id: str, filename: str, text: str, attempts: int = 3) -> str:
+        # The upload endpoint occasionally (and transiently) refuses with
+        # "Upload has already been terminated" -- reproduced live, and an
+        # immediate retry of the exact same call succeeded. A few hundred
+        # sequential uploads make hitting this at least once likely, so
+        # retry with backoff rather than letting one flake fail the whole run.
+        last_error: Exception | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                operation = self.client.file_search_stores.upload_to_file_search_store(
+                    file_search_store_name=store_id,
+                    file=io.BytesIO(text.encode("utf-8")),
+                    config=types.UploadToFileSearchStoreConfig(
+                        display_name=filename,
+                        mime_type="text/markdown",
+                    ),
+                )
+                operation = self._await_operation(operation)
+                return operation.response.document_name
+            except Exception as e:
+                last_error = e
+                if attempt < attempts:
+                    time.sleep(2**attempt)  # 2s, 4s
+        raise last_error
 
     def replace_article(self, store_id: str, old_ref: str, filename: str, text: str) -> str:
         self.remove_article(store_id, old_ref)
@@ -50,7 +63,12 @@ class GeminiProvider:
 
     def remove_article(self, store_id: str, ref: str) -> None:
         try:
-            self.client.file_search_stores.documents.delete(name=ref)
+            # force=True: a just-uploaded document can still be indexing, and
+            # a plain delete refuses with FAILED_PRECONDITION ("Cannot delete
+            # non-empty Document") until that settles -- hit this live.
+            self.client.file_search_stores.documents.delete(
+                name=ref, config=types.DeleteDocumentConfig(force=True)
+            )
         except Exception:
             pass  # already deleted
 

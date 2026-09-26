@@ -49,8 +49,16 @@ def slugify(title: str, article_id: int) -> str:
     return f"{slug}-{article_id}"
 
 
+_DATA_URI_IMAGE = re.compile(r"!\[([^\]]*)\]\(data:[^)]+\)")
+
+
 def html_to_markdown(html: str) -> str:
     md = markdownify(html or "", heading_style="ATX", bullets="-")
+    # A screenshot embedded inline as a base64 data: URI (seen live: one
+    # article ballooned to a 125,000-character single line and broke the
+    # Gemini upload) isn't "clean" content for a text knowledge base anyway
+    # -- keep the alt text, drop the payload.
+    md = _DATA_URI_IMAGE.sub(lambda m: f"[Image: {m.group(1)}]" if m.group(1) else "[Image]", md)
     # Collapse the runs of blank lines markdownify tends to leave behind.
     md = re.sub(r"\n{3,}", "\n\n", md).strip()
     return md
