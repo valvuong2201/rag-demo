@@ -190,6 +190,14 @@ directly.)
 Answered correctly, grounded in the uploaded docs, with real cited URLs — see
 `screenshot.png` (submitted alongside this repo per the Deliverables table).
 
+Re-run it yourself (or ask something else) with:
+```bash
+python3 sanity_check.py "How do I add a YouTube video?"
+```
+`sanity_check.py` is that same check as a standalone script — not part of the
+daily pipeline, just a quick way to ask the synced assistant a question from
+the command line instead of the (currently UI-less) Playground.
+
 **Note on how this was run**: Google AI Studio's Playground UI does not
 currently expose a way to attach an existing File Search store (only ad-hoc
 file/Drive attachments for a single turn) — a real product gap, not a
