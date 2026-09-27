@@ -1,5 +1,7 @@
 # OptiBot Mini-Clone
 
+**Candidate:** Dương Cát Hùng Vương
+
 A small pipeline that keeps an OpenAI vector store in sync with the OptiSigns
 Help Center, so an Assistant can answer support questions with cited article
 URLs.
